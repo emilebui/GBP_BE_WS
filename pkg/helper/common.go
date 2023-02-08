@@ -44,3 +44,17 @@ func Struct2Map(inputStruct interface{}) map[string]string {
 	_ = json.Unmarshal(inrec, &inInterface)
 	return inInterface
 }
+
+func Interface2Int(input interface{}) (int, bool) {
+	val, ok := input.(int)
+	if ok {
+		return val, ok
+	}
+
+	temp, ok := input.(float64)
+	if !ok {
+		return 0, ok
+	}
+
+	return int(temp), ok
+}

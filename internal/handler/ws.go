@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/emilebui/GBP_BE_echo/internal/broker"
+	"github.com/emilebui/GBP_BE_echo/pkg/global"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
@@ -12,16 +14,14 @@ import (
 )
 
 type WebSocketHandler struct {
-	redisConn   *redis.Client
-	upgrader    websocket.Upgrader
-	responseMap map[string]string
+	redisConn *redis.Client
+	upgrader  websocket.Upgrader
 }
 
-func NewWSHandler(redisConn *redis.Client, upgrader websocket.Upgrader, responseMap map[string]string) *WebSocketHandler {
+func NewWSHandler(redisConn *redis.Client, upgrader websocket.Upgrader) *WebSocketHandler {
 	return &WebSocketHandler{
-		redisConn:   redisConn,
-		upgrader:    upgrader,
-		responseMap: responseMap,
+		redisConn: redisConn,
+		upgrader:  upgrader,
 	}
 }
 
@@ -48,53 +48,63 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Client %s connected successfully to the game %s\n", cid, gid)
 	defer c.Close()
 
-	go s.handleRedisMessage(c, gid)
-	s.handleWSMessage(c)
+	// Create done channel
+	done := make(chan bool)
+
+	go s.handleRedisMessage(done, c, gid)
+	s.handleWSMessage(done, c, gid, cid)
+
 }
 
 func (s *WebSocketHandler) getParams(r *http.Request) (gid string, cid string, err error) {
 	params := r.URL.Query()
 	gameID := params.Get("gid")
 	if gameID == "" {
-		return "", "", errors.New(fmt.Sprintf(s.responseMap["params_required"], "gid"))
+		return "", "", errors.New(fmt.Sprintf(global.TextConfig["params_required"], "gid"))
 	}
 	clientID := params.Get("cid")
 	if clientID == "" {
-		return "", "", errors.New(fmt.Sprintf(s.responseMap["params_required"], "cid"))
+		return "", "", errors.New(fmt.Sprintf(global.TextConfig["params_required"], "cid"))
 	}
 	return gameID, clientID, nil
 }
 
-func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {
+func (s *WebSocketHandler) handleRedisMessage(done <-chan bool, c *websocket.Conn, gid string) {
 	subscriber := s.redisConn.Subscribe(context.Background(), gid)
 
 	for {
-		msg, err := subscriber.ReceiveMessage(context.Background())
-		if err != nil {
-			panic(err)
-		}
+		select {
+		case <-done:
+			println("Unsub and closed go routines!!")
+			_ = subscriber.Unsubscribe(context.Background(), gid)
+			return
+		default:
+			msg, err := subscriber.ReceiveMessage(context.Background())
+			if err != nil {
+				panic(err)
+			}
 
-		err = c.WriteMessage(1, []byte(msg.Payload))
-		if err != nil {
-			log.Println("WriteMessage Error:", err)
-			break
+			err = c.WriteMessage(1, []byte(msg.Payload))
+			if err != nil {
+				log.Println("WriteMessage Error:", err)
+			}
 		}
 	}
 }
 
-func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn) {
+func (s *WebSocketHandler) handleWSMessage(done chan<- bool, c *websocket.Conn, gid string, cid string) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("ReadMessage Error:", err)
+			done <- true
 			break
 		}
-		fmt.Printf("Got message: %s\n", string(message))
+		log.Printf("Got message: %s - GID: %s - CID: %s\n", string(message), gid, cid)
 
-		err = s.redisConn.Publish(context.Background(), "livechat", message).Err()
+		err = broker.ProcessMessage(s.redisConn, message, gid, cid)
 		if err != nil {
-			log.Println("Publish Redis Error:", err)
-			break
+			helper.WSError(c, err, fmt.Sprintf("Handle Message Error - GID: %s - CID: %s", gid, cid))
 		}
 	}
 }
