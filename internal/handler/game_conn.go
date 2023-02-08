@@ -6,53 +6,71 @@ import (
 	"github.com/emilebui/GBP_BE_echo/internal/logic"
 	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
+	"log"
 )
 
 func (s *WebSocketHandler) ConnectGame(gid string, cid string) error {
 
-	rawData, err := s.redisConn.HGetAll(context.Background(), gid).Result()
-	if err != nil {
-		s.createGame(gid, cid)
+	rawData, err := s.redisConn.Get(context.Background(), gid).Result()
+	if err != nil || len(rawData) == 0 {
+		err = s.createGame(gid, cid)
+		if err != nil {
+			log.Println(gid, cid, err)
+			return errors.New(s.responseMap["redis_error"])
+		}
+		helper.PublishRedis(&gstatus.ResponseMessage{
+			Message: s.responseMap["waiting_player"],
+			Type:    gstatus.VALID,
+		}, s.redisConn, gid)
+
 	} else {
 		// Append Game if necessary
 		gameState := new(logic.GameState)
-		err = helper.Struct2Struct(rawData, gameState)
+
+		err = helper.StringToStruct(rawData, gameState)
 		if err != nil {
-			return errors.New("decode error from redis - connect game")
+			return errors.New(s.responseMap["redis_data_error"])
 		}
+
 		err = s.appendPlayerIfNecessary(gameState, cid)
 		if err != nil {
 			return err
 		}
+		helper.PublishRedis(&gstatus.ResponseMessage{
+			Message: s.responseMap["game_ready"],
+			Type:    gstatus.INFO,
+			Data:    helper.Struct2String(gameState),
+		}, s.redisConn, gid)
 	}
 
 	return nil
 }
 
-func (s *WebSocketHandler) createGame(gid string, cid string) {
+func (s *WebSocketHandler) createGame(gid string, cid string) error {
 	gs := &logic.GameState{
 		GameID:  gid,
 		Player1: cid,
 		Status:  gstatus.WATTING,
 	}
-	s.redisConn.HMSet(context.Background(), gid, gs)
+	_, err := s.redisConn.Set(context.Background(), gid, helper.Struct2String(gs), 0).Result()
+	return err
 }
 
 func (s *WebSocketHandler) appendPlayerIfNecessary(gs *logic.GameState, cid string) error {
 
 	gid := gs.GameID
 
-	if gs.Player2 == "" {
+	if gs.Player2 == "" && cid != gs.Player1 {
 		gs.Player2 = cid
 		gs.Status = gstatus.PLAYING
 		gs.PlayerTurn = helper.RandomInList([]string{gs.Player1, gs.Player2})
 		gs.Turn = 0
-		s.redisConn.HMSet(context.Background(), gid, gs)
+		s.redisConn.Set(context.Background(), gid, helper.Struct2String(gs), 0)
 		return nil
 	}
 
 	if cid != gs.Player1 && cid != gs.Player2 {
-		return errors.New("there is enough player already")
+		return errors.New(s.responseMap["enough_player"])
 	}
 
 	return nil

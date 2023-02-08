@@ -1,7 +1,32 @@
+# HOST/PORT config
 addr: localhost:8000
 
+# CORS config
 CORS: ["localhost", "genshinbanpick.com", ""]
 
+
+# Redis config
 redis_addr: localhost:6379
 redis_pwd: ""
 redis_db: 0
+
+# Response message configuration
+text_messages:
+
+  # Error message
+
+  ## Connection Error
+  params_required: "Param %s is required to connect to the game"
+  redis_error: "Redis connection error!!!"
+  redis_data_error: "Error data from redis"
+
+  ## Game Error
+  player_not_connected: "The other player are not connected yet! You can't not submit your move!!!"
+  enough_player: "There are already 2 players in this game. Cannot join!!!"
+  not_your_turn: "It is not your turn yet!!!"
+
+
+  # INFO message
+  waiting_player: "The game is created, waiting for the other player to connect.."
+  game_ready: "Both player are connected, the game is ready"
+  game_ended: "The game has ended!!!"

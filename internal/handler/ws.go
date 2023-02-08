@@ -12,14 +12,16 @@ import (
 )
 
 type WebSocketHandler struct {
-	redisConn *redis.Client
-	upgrader  websocket.Upgrader
+	redisConn   *redis.Client
+	upgrader    websocket.Upgrader
+	responseMap map[string]string
 }
 
-func NewWSHandler(redisConn *redis.Client, upgrader websocket.Upgrader) *WebSocketHandler {
+func NewWSHandler(redisConn *redis.Client, upgrader websocket.Upgrader, responseMap map[string]string) *WebSocketHandler {
 	return &WebSocketHandler{
-		redisConn: redisConn,
-		upgrader:  upgrader,
+		redisConn:   redisConn,
+		upgrader:    upgrader,
+		responseMap: responseMap,
 	}
 }
 
@@ -43,11 +45,10 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	println("Establishing a connection with a client...")
-
+	log.Printf("Client %s connected successfully to the game %s\n", cid, gid)
 	defer c.Close()
 
-	go s.handleRedisMessage(c)
+	go s.handleRedisMessage(c, gid)
 	s.handleWSMessage(c)
 }
 
@@ -55,17 +56,17 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, cid string, e
 	params := r.URL.Query()
 	gameID := params.Get("gid")
 	if gameID == "" {
-		return "", "", errors.New("gid param is required")
+		return "", "", errors.New(fmt.Sprintf(s.responseMap["params_required"], "gid"))
 	}
 	clientID := params.Get("cid")
 	if clientID == "" {
-		return "", "", errors.New("cid param is required")
+		return "", "", errors.New(fmt.Sprintf(s.responseMap["params_required"], "cid"))
 	}
 	return gameID, clientID, nil
 }
 
-func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn) {
-	subscriber := s.redisConn.Subscribe(context.Background(), "livechat")
+func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {
+	subscriber := s.redisConn.Subscribe(context.Background(), gid)
 
 	for {
 		msg, err := subscriber.ReceiveMessage(context.Background())

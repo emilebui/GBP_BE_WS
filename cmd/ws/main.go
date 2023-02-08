@@ -23,14 +23,18 @@ func main() {
 		return helper.ContainsString(CORS, r.URL.Host)
 	}
 
+	// Init text message config
+	textConf := config.GetStringMapString("text_messages")
+
 	// Init Redis Connection
 	redisConn := conn.GetRedisConn(config)
 
 	// Init game logic
 
 	// Init ws handler
-	wsHandler := handler.NewWSHandler(redisConn, upgrader)
+	wsHandler := handler.NewWSHandler(redisConn, upgrader, textConf)
 
+	fmt.Println("Starting Websocket server successfully!!!")
 	http.HandleFunc("/play", wsHandler.Play)
 	log.Fatal(http.ListenAndServe(config.GetString("addr"), nil))
 }
