@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/emilebui/GBP_BE_echo/internal/broker"
 	"github.com/emilebui/GBP_BE_echo/pkg/global"
+	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
@@ -97,6 +98,10 @@ func (s *WebSocketHandler) handleWSMessage(done chan<- bool, c *websocket.Conn, 
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("ReadMessage Error:", err)
+			helper.PublishRedis(&gstatus.ResponseMessage{
+				Message: fmt.Sprintf("Player %s has disconnected", cid),
+				Type:    gstatus.LOG,
+			}, s.redisConn, gid)
 			done <- true
 			break
 		}
