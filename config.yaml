@@ -1,0 +1,7 @@
+addr: localhost:8000
+
+CORS: ["localhost", "genshinbanpick.com", ""]
+
+redis_addr: localhost:6379
+redis_pwd: ""
+redis_db: 0
