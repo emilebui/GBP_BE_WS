@@ -58,3 +58,14 @@ func Interface2Int(input interface{}) (int, bool) {
 
 	return int(temp), ok
 }
+
+func CheckIfAllBoolValueInMapIs(inputMap map[string]bool, b bool) bool {
+	check := true
+	for _, v := range inputMap {
+		if v != b {
+			check = false
+		}
+	}
+
+	return check
+}

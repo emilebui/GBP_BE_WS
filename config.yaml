@@ -19,6 +19,8 @@ text_messages:
   params_required: "Param %s is required to connect to the game"
   redis_error: "Redis connection error!!!"
   redis_data_error: "Error data from redis"
+  already_join: "You have already join the game in other client!!"
+  player_disconnected: "Player %s has disconnected, the game will halt!!!"
 
   ## Game Error
   player_not_connected: "The other player are not connected yet! You can't not submit your move!!!"
@@ -27,6 +29,8 @@ text_messages:
   invalid_data_type: "You have submitted the wrong data type for your move"
   wrong_move: "Wrong move!!!"
   data_input_error: "Data Input Error!!!"
+  already_chosen: "This card has already been banned or picked!!!!"
+  already_ended: "This game has already ended!!!"
 
 
   # INFO message
@@ -34,7 +38,7 @@ text_messages:
   game_ready: "Both player are connected, the game is ready"
   game_ended: "The game has ended!!!"
   game_state_update: "New game state --> Update!!"
-
+  game_resume: "Player reconnected, the game will be resume!!!!"
 
 # Game format
 GAME_TURN_FORMAT:
@@ -112,5 +116,6 @@ GAME_TURN_FORMAT:
     player: 2
 
 
-# Game Config
-TURN_EXP: 30
+# GAME Config
+
+AFTER_GAME_EXP: 3600      # seconds

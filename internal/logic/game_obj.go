@@ -12,15 +12,22 @@ import (
 )
 
 type GameState struct {
-	GameID        string         `json:"game_id"`
-	Player1       string         `json:"player_1"`
-	Player2       string         `json:"player_2"`
-	Turn          int            `json:"turn"`
-	Status        int            `json:"status"`
-	PlayerTurnMap map[int]string `json:"player_turn_map"`
-	PlayerTurn    string         `json:"player_turn"`
-	Pick          bool           `json:"pick"`
-	Board         GameBoard      `json:"board"`
+	GameID            string          `json:"game_id"`
+	Player1           Player          `json:"player_1"`
+	Player2           Player          `json:"player_2"`
+	Turn              int             `json:"turn"`
+	Status            int             `json:"status"`
+	PlayerTurnMap     map[int]string  `json:"player_turn_map"`
+	PlayerTurn        string          `json:"player_turn"`
+	ConnectionTracker map[string]bool `json:"connection_tracker"`
+	Pick              bool            `json:"pick"`
+	BPMap             map[int]bool    `json:"bp_map"`
+	Board             GameBoard       `json:"board"`
+}
+
+type Player struct {
+	CID      string `json:"cid"`
+	Nickname string `json:"nickname"`
 }
 
 type GameBoard struct {

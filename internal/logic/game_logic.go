@@ -8,6 +8,7 @@ import (
 	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
 	"github.com/redis/go-redis/v9"
+	"time"
 )
 
 type GameLogic struct {
@@ -21,8 +22,12 @@ func (g *GameLogic) Pick(c int) {
 func CheckIfMoveValid(gs *GameState, cid string) error {
 
 	// Check if 2 player are connected
-	if gs.Turn == 0 || gs.Status != gstatus.PLAYING {
+	if gs.Turn == 0 || gs.Status == gstatus.WATTING {
 		return errors.New(global.TextConfig["player_not_connected"])
+	}
+
+	if gs.Status == gstatus.ENDED {
+		return errors.New(global.TextConfig["already_ended"])
 	}
 
 	// Check if not your turn --> Ignore
@@ -53,15 +58,40 @@ func BanPickLogic(r *redis.Client, gs *GameState, mr *MoveRequest, cid string, p
 		return errors.New(global.TextConfig["invalid_data_type"])
 	}
 
+	if _, ok = gs.BPMap[hid]; ok {
+		return errors.New(global.TextConfig["already_chosen"])
+	}
+
+	return BPCore(gs, hid, cid, pick, r)
+}
+
+func BPCore(gs *GameState, hid int, cid string, pick bool, r *redis.Client) error {
 	appendBPListPlayer(cid, gs, pick, hid)
+	gs.BPMap[hid] = true
 	gs.Turn = gs.Turn + 1
 
-	err := r.Set(context.Background(), gs.GameID, helper.Struct2String(gs), 0).Err()
+	ended := false
+	if _, ok := TurnFormat[gs.Turn]; !ok {
+		gs.Status = gstatus.ENDED
+		ended = true
+	}
+
+	gs.PlayerTurn = GetPlayerTurn(gs)
+
+	exp := 0 * time.Second
+	if ended {
+		exp = time.Duration(global.AfterGameExp) * time.Second
+	}
+
+	err := r.Set(context.Background(), gs.GameID, helper.Struct2String(gs), exp).Err()
 	if err != nil {
 		return errors.New(global.TextConfig["redis_error"])
 	}
 
 	result, err := r.Get(context.Background(), gs.GameID).Result()
+	if err != nil {
+		return errors.New(global.TextConfig["redis_error"])
+	}
 
 	helper.PublishRedis(&gstatus.ResponseMessage{
 		Message: global.TextConfig["game_state_update"],
@@ -69,6 +99,13 @@ func BanPickLogic(r *redis.Client, gs *GameState, mr *MoveRequest, cid string, p
 		Data:    result,
 	}, r, gs.GameID)
 
+	if ended {
+		helper.PublishRedis(&gstatus.ResponseMessage{
+			Message: global.TextConfig["game_ended"],
+			Type:    gstatus.INFO,
+			Data:    result,
+		}, r, gs.GameID)
+	}
 	return nil
 }
 
@@ -77,7 +114,7 @@ func Chat(r *redis.Client, gs *GameState, mr *MoveRequest, cid string) error {
 }
 
 func appendBPListPlayer(cid string, gs *GameState, pick bool, hid int) {
-	if cid == gs.Player1 {
+	if cid == gs.Player1.CID {
 		if pick {
 			gs.Board.P1Pick = append(gs.Board.P1Pick, hid)
 		} else {

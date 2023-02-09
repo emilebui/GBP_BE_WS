@@ -3,14 +3,16 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/emilebui/GBP_BE_echo/internal/logic"
 	"github.com/emilebui/GBP_BE_echo/pkg/global"
 	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
 	"log"
+	"time"
 )
 
-func (s *WebSocketHandler) ConnectGame(gid string, cid string) error {
+func (s *WebSocketHandler) ConnectGame(gid string, cid string, nickname string) error {
 
 	gameState, err := logic.GetGameState(gid, s.redisConn)
 
@@ -20,7 +22,7 @@ func (s *WebSocketHandler) ConnectGame(gid string, cid string) error {
 	}
 
 	if gameState == nil {
-		err = s.createGame(gid, cid)
+		err = s.createGame(gid, cid, nickname)
 		if err != nil {
 			log.Println(gid, cid, err)
 			return errors.New(global.TextConfig["redis_error"])
@@ -30,45 +32,131 @@ func (s *WebSocketHandler) ConnectGame(gid string, cid string) error {
 			Type:    gstatus.VALID,
 		}, s.redisConn, gid)
 	} else {
-		err = s.appendPlayerIfNecessary(gameState, cid)
+		err = s.processingConnection(gameState, cid, nickname)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *WebSocketHandler) createGame(gid string, cid string, nickname string) error {
+	gs := &logic.GameState{
+		GameID: gid,
+		Player1: logic.Player{
+			CID:      cid,
+			Nickname: nickname,
+		},
+		Player2: logic.Player{
+			CID:      "",
+			Nickname: "",
+		},
+		Status:            gstatus.WATTING,
+		ConnectionTracker: map[string]bool{cid: true},
+	}
+	return s.redisConn.Set(context.Background(), gid, helper.Struct2String(gs), 0).Err()
+}
+
+func (s *WebSocketHandler) appendPlayer(gs *logic.GameState, cid string, nickname string) error {
+	gs.Player2 = logic.Player{
+		CID:      cid,
+		Nickname: nickname,
+	}
+	gs.Status = gstatus.PLAYING
+	gs.PlayerTurnMap = logic.ShufflePlayer(gs.Player1.CID, gs.Player2.CID)
+	gs.Turn = 1
+	gs.PlayerTurn = logic.GetPlayerTurn(gs)
+	gs.BPMap = map[int]bool{0: false}
+	gs.ConnectionTracker[cid] = true
+	return s.redisConn.Set(context.Background(), gs.GameID, helper.Struct2String(gs), 0).Err()
+}
+
+func (s *WebSocketHandler) processingConnection(gs *logic.GameState, cid string, nickname string) error {
+
+	// If player 2 join the game --> init new game, game_status == PLAYING
+	if gs.Player2.CID == "" && cid != gs.Player1.CID {
+		err := s.appendPlayer(gs, cid, nickname)
 		if err != nil {
 			return err
 		}
 		helper.PublishRedis(&gstatus.ResponseMessage{
 			Message: global.TextConfig["game_ready"],
 			Type:    gstatus.INFO,
-			Data:    helper.Struct2String(gameState),
-		}, s.redisConn, gid)
+			Data:    helper.Struct2String(gs),
+		}, s.redisConn, gs.GameID)
+		return nil
 	}
 
-	return nil
+	return s.checkIfReconnect(gs, cid)
 }
 
-func (s *WebSocketHandler) createGame(gid string, cid string) error {
-	gs := &logic.GameState{
-		GameID:  gid,
-		Player1: cid,
-		Status:  gstatus.WATTING,
-	}
-	return s.redisConn.Set(context.Background(), gid, helper.Struct2String(gs), 0).Err()
-}
+func (s *WebSocketHandler) checkIfReconnect(gs *logic.GameState, cid string) error {
 
-func (s *WebSocketHandler) appendPlayerIfNecessary(gs *logic.GameState, cid string) error {
-
-	gid := gs.GameID
-
-	if gs.Player2 == "" && cid != gs.Player1 {
-		gs.Player2 = cid
-		gs.Status = gstatus.PLAYING
-		gs.PlayerTurnMap = logic.ShufflePlayer(gs.Player1, gs.Player2)
-		gs.Turn = 1
-		gs.PlayerTurn = logic.GetPlayerTurn(gs)
-		return s.redisConn.Set(context.Background(), gid, helper.Struct2String(gs), 0).Err()
-	}
-
-	if cid != gs.Player1 && cid != gs.Player2 {
+	val, ok := gs.ConnectionTracker[cid]
+	if !ok {
 		return errors.New(global.TextConfig["enough_player"])
 	}
 
+	if val {
+		return errors.New(global.TextConfig["already_join"])
+	}
+
+	gs.ConnectionTracker[cid] = true
+	s.determineGameStatusAfterConnecting(gs)
+
+	err := s.redisConn.Set(context.Background(), gs.GameID, helper.Struct2String(gs), 0).Err()
+	if err != nil {
+		return err
+	}
+
+	helper.PublishRedis(&gstatus.ResponseMessage{
+		Message: global.TextConfig["game_resume"],
+		Type:    gstatus.RECONN,
+		Data:    helper.Struct2String(gs),
+	}, s.redisConn, gs.GameID)
+
 	return nil
+}
+
+func (s *WebSocketHandler) determineGameStatusAfterConnecting(gs *logic.GameState) {
+
+	// If player 1 disconnected and reconnect --> gstatus should be WAITING after p1 reconnect
+	if len(gs.ConnectionTracker) == 1 {
+		gs.Status = gstatus.WATTING
+	} else {
+		check := helper.CheckIfAllBoolValueInMapIs(gs.ConnectionTracker, true)
+
+		// If Both player are connected then gstatus should be PLAYING
+		if check {
+			gs.Status = gstatus.PLAYING
+		}
+	}
+
+}
+
+func (s *WebSocketHandler) disconnect(gid string, cid string, nickname string) {
+
+	gs, _ := logic.GetGameState(gid, s.redisConn)
+	s.disconnectLogic(gs, cid)
+
+	helper.PublishRedis(&gstatus.ResponseMessage{
+		Message: fmt.Sprintf(global.TextConfig["player_disconnected"], nickname),
+		Type:    gstatus.DISCON,
+		Data:    helper.Struct2String(gs),
+	}, s.redisConn, gid)
+}
+
+func (s *WebSocketHandler) determineIfGameIsDeadOrNot(gs *logic.GameState) {
+	if helper.CheckIfAllBoolValueInMapIs(gs.ConnectionTracker, false) {
+		s.redisConn.Set(context.Background(), gs.GameID, helper.Struct2String(gs), time.Duration(global.AfterGameExp)*time.Second)
+	} else {
+		s.redisConn.Set(context.Background(), gs.GameID, helper.Struct2String(gs), 0)
+	}
+}
+
+func (s *WebSocketHandler) disconnectLogic(gs *logic.GameState, cid string) {
+	gs.ConnectionTracker[cid] = false
+	gs.Status = gstatus.HALT
+	s.determineIfGameIsDeadOrNot(gs)
 }

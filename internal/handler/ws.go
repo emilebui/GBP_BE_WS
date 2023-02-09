@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/emilebui/GBP_BE_echo/internal/broker"
 	"github.com/emilebui/GBP_BE_echo/pkg/global"
-	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
@@ -34,13 +33,13 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gid, cid, err := s.getParams(r)
+	gid, cid, nickname, err := s.getParams(r)
 	if err != nil {
 		helper.WSError(c, err, "Param Error")
 		return
 	}
 
-	err = s.ConnectGame(gid, cid)
+	err = s.ConnectGame(gid, cid, nickname)
 	if err != nil {
 		helper.WSError(c, err, "Connect Game Error")
 		return
@@ -49,25 +48,26 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Client %s connected successfully to the game %s\n", cid, gid)
 	defer c.Close()
 
-	// Create done channel
-	// done := make(chan bool)
-
 	go s.handleRedisMessage(c, gid)
-	s.handleWSMessage(c, gid, cid)
+	s.handleWSMessage(c, gid, cid, nickname)
 
 }
 
-func (s *WebSocketHandler) getParams(r *http.Request) (gid string, cid string, err error) {
+func (s *WebSocketHandler) getParams(r *http.Request) (gid string, cid string, nickname string, err error) {
 	params := r.URL.Query()
 	gameID := params.Get("gid")
 	if gameID == "" {
-		return "", "", errors.New(fmt.Sprintf(global.TextConfig["params_required"], "gid"))
+		return "", "", "", errors.New(fmt.Sprintf(global.TextConfig["params_required"], "gid"))
 	}
 	clientID := params.Get("cid")
 	if clientID == "" {
-		return "", "", errors.New(fmt.Sprintf(global.TextConfig["params_required"], "cid"))
+		return "", "", "", errors.New(fmt.Sprintf(global.TextConfig["params_required"], "cid"))
 	}
-	return gameID, clientID, nil
+	nn := params.Get("nickname")
+	if nn == "" {
+		nn = clientID
+	}
+	return gameID, clientID, nn, nil
 }
 
 func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {
@@ -92,15 +92,12 @@ func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {
 	}
 }
 
-func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gid string, cid string) {
+func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gid string, cid string, nickname string) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, 1005) {
-				helper.PublishRedis(&gstatus.ResponseMessage{
-					Message: fmt.Sprintf("Player %s has disconnected", cid),
-					Type:    gstatus.LOG,
-				}, s.redisConn, gid)
+				s.disconnect(gid, cid, nickname)
 			} else {
 				log.Println("ReadMessage Error:", err)
 			}

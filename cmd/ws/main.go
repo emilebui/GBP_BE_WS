@@ -29,6 +29,9 @@ func main() {
 	textConf := config.GetStringMapString("text_messages")
 	global.InitGlobalTextConfig(textConf)
 
+	// Init After Game Expiration
+	global.InitAfterGameExp(config.GetInt("AFTER_GAME_EXP"))
+
 	// Get Turn Format
 	var tf map[int]logic.TurnInfo
 	err := config.UnmarshalKey("GAME_TURN_FORMAT", &tf)
@@ -39,8 +42,6 @@ func main() {
 
 	// Init Redis Connection
 	redisConn := conn.GetRedisConn(config)
-
-	// Init game logic
 
 	// Init ws handler
 	wsHandler := handler.NewWSHandler(redisConn, upgrader)
