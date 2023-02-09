@@ -50,10 +50,10 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 
 	// Create done channel
-	done := make(chan bool)
+	// done := make(chan bool)
 
-	go s.handleRedisMessage(done, c, gid)
-	s.handleWSMessage(done, c, gid, cid)
+	go s.handleRedisMessage(c, gid)
+	s.handleWSMessage(c, gid, cid)
 
 }
 
@@ -70,39 +70,40 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, cid string, e
 	return gameID, clientID, nil
 }
 
-func (s *WebSocketHandler) handleRedisMessage(done <-chan bool, c *websocket.Conn, gid string) {
+func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {
 	subscriber := s.redisConn.Subscribe(context.Background(), gid)
 
 	for {
-		select {
-		case <-done:
-			println("Unsub and closed go routines!!")
-			_ = subscriber.Unsubscribe(context.Background(), gid)
-			return
-		default:
-			msg, err := subscriber.ReceiveMessage(context.Background())
-			if err != nil {
-				panic(err)
-			}
+		msg, err := subscriber.ReceiveMessage(context.Background())
+		if err != nil {
+			panic(err)
+		}
 
-			err = c.WriteMessage(1, []byte(msg.Payload))
-			if err != nil {
+		err = c.WriteMessage(1, []byte(msg.Payload))
+		if err != nil {
+			if errors.Is(err, websocket.ErrCloseSent) {
+				println("Unsub and closed go routines!!")
+				_ = subscriber.Unsubscribe(context.Background(), gid)
+			} else {
 				log.Println("WriteMessage Error:", err)
 			}
+			return
 		}
 	}
 }
 
-func (s *WebSocketHandler) handleWSMessage(done chan<- bool, c *websocket.Conn, gid string, cid string) {
+func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gid string, cid string) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			log.Println("ReadMessage Error:", err)
-			helper.PublishRedis(&gstatus.ResponseMessage{
-				Message: fmt.Sprintf("Player %s has disconnected", cid),
-				Type:    gstatus.LOG,
-			}, s.redisConn, gid)
-			done <- true
+			if websocket.IsCloseError(err, 1005) {
+				helper.PublishRedis(&gstatus.ResponseMessage{
+					Message: fmt.Sprintf("Player %s has disconnected", cid),
+					Type:    gstatus.LOG,
+				}, s.redisConn, gid)
+			} else {
+				log.Println("ReadMessage Error:", err)
+			}
 			break
 		}
 		log.Printf("Got message: %s - GID: %s - CID: %s\n", string(message), gid, cid)
