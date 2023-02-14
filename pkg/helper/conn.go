@@ -20,12 +20,12 @@ func PublishRedis(res *gstatus.ResponseMessage, r *redis.Client, gid string) {
 	r.Publish(context.Background(), gid, dataStr)
 }
 
-func WSError(c *websocket.Conn, err error, v ...string) {
+func WSError(c *websocket.Conn, err error, et int, v ...string) {
 	errMsg := fmt.Sprintf("%v %v", v, err)
 	log.Println(errMsg)
 	ResponseWS(&gstatus.ResponseMessage{
 		Message: err.Error(),
-		Type:    gstatus.ERROR,
+		Type:    et,
 		Info:    v,
 	}, c)
 }

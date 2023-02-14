@@ -39,6 +39,7 @@ text_messages:
   game_ended: "The game has ended!!!"
   game_state_update: "New game state --> Update!!"
   game_resume: "Player reconnected, the game will be resume!!!!"
+  game_state_return: "Returned game state for update!!"
 
 # Game format
 GAME_TURN_FORMAT:

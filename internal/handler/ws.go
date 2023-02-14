@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/emilebui/GBP_BE_echo/internal/broker"
 	"github.com/emilebui/GBP_BE_echo/pkg/global"
+	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
@@ -35,13 +36,13 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 
 	gid, cid, nickname, err := s.getParams(r)
 	if err != nil {
-		helper.WSError(c, err, "Param Error")
+		helper.WSError(c, err, gstatus.JOIN_GAME_ERROR, "Param Error")
 		return
 	}
 
 	err = s.ConnectGame(gid, cid, nickname)
 	if err != nil {
-		helper.WSError(c, err, "Connect Game Error")
+		helper.WSError(c, err, gstatus.JOIN_GAME_ERROR, "Connect Game Error")
 		return
 	}
 
@@ -96,7 +97,7 @@ func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gid string, cid st
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			if websocket.IsCloseError(err, 1005) {
+			if websocket.IsCloseError(err, 1005, 1001) {
 				s.disconnect(gid, cid, nickname)
 			} else {
 				log.Println("ReadMessage Error:", err)
@@ -105,9 +106,9 @@ func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gid string, cid st
 		}
 		log.Printf("Got message: %s - GID: %s - CID: %s\n", string(message), gid, cid)
 
-		err = broker.ProcessMessage(s.redisConn, message, gid, cid)
+		err = broker.ProcessMessage(s.redisConn, message, gid, cid, c)
 		if err != nil {
-			helper.WSError(c, err, fmt.Sprintf("Handle Message Error - GID: %s - CID: %s", gid, cid))
+			helper.WSError(c, err, gstatus.ERROR, fmt.Sprintf("Handle Message Error - GID: %s - CID: %s", gid, cid))
 		}
 	}
 }
