@@ -8,23 +8,20 @@ import (
 	"github.com/emilebui/GBP_BE_echo/pkg/global"
 	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
-	"log"
 	"time"
 )
 
-func (s *WebSocketHandler) ConnectGame(gid string, cid string, nickname string) error {
+func (s *WebSocketHandler) ConnectGame(gid string, player *logic.Player) error {
 
 	gameState, err := logic.GetGameState(gid, s.redisConn)
 
 	if err != nil {
-		log.Println(gid, cid, err)
 		return errors.New(global.TextConfig["redis_error"])
 	}
 
 	if gameState == nil {
-		err = s.createGame(gid, cid, nickname)
+		err = s.createGame(gid, player)
 		if err != nil {
-			log.Println(gid, cid, err)
 			return errors.New(global.TextConfig["redis_error"])
 		}
 		helper.PublishRedis(&gstatus.ResponseMessage{
@@ -32,7 +29,7 @@ func (s *WebSocketHandler) ConnectGame(gid string, cid string, nickname string) 
 			Type:    gstatus.VALID,
 		}, s.redisConn, gid)
 	} else {
-		err = s.processingConnection(gameState, cid, nickname)
+		err = s.processingConnection(gameState, player)
 		if err != nil {
 			return err
 		}
@@ -41,42 +38,36 @@ func (s *WebSocketHandler) ConnectGame(gid string, cid string, nickname string) 
 	return nil
 }
 
-func (s *WebSocketHandler) createGame(gid string, cid string, nickname string) error {
+func (s *WebSocketHandler) createGame(gid string, player *logic.Player) error {
 	gs := &logic.GameState{
-		GameID: gid,
-		Player1: logic.Player{
-			CID:      cid,
-			Nickname: nickname,
-		},
+		GameID:  gid,
+		Player1: *player,
 		Player2: logic.Player{
 			CID:      "",
 			Nickname: "",
 		},
 		Status:            gstatus.WATTING,
-		ConnectionTracker: map[string]bool{cid: true},
+		ConnectionTracker: map[string]bool{player.CID: true},
 	}
 	return s.redisConn.Set(context.Background(), gid, helper.Struct2String(gs), 0).Err()
 }
 
-func (s *WebSocketHandler) appendPlayer(gs *logic.GameState, cid string, nickname string) error {
-	gs.Player2 = logic.Player{
-		CID:      cid,
-		Nickname: nickname,
-	}
+func (s *WebSocketHandler) appendPlayer(gs *logic.GameState, player *logic.Player) error {
+	gs.Player2 = *player
 	gs.Status = gstatus.PLAYING
 	gs.PlayerTurnMap = logic.ShufflePlayer(gs.Player1.CID, gs.Player2.CID)
 	gs.Turn = 1
 	gs.PlayerTurn = logic.GetPlayerTurn(gs)
 	gs.BPMap = map[int]bool{0: false}
-	gs.ConnectionTracker[cid] = true
+	gs.ConnectionTracker[player.CID] = true
 	return s.redisConn.Set(context.Background(), gs.GameID, helper.Struct2String(gs), 0).Err()
 }
 
-func (s *WebSocketHandler) processingConnection(gs *logic.GameState, cid string, nickname string) error {
+func (s *WebSocketHandler) processingConnection(gs *logic.GameState, player *logic.Player) error {
 
 	// If player 2 join the game --> init new game, game_status == PLAYING
-	if gs.Player2.CID == "" && cid != gs.Player1.CID {
-		err := s.appendPlayer(gs, cid, nickname)
+	if gs.Player2.CID == "" && player.CID != gs.Player1.CID {
+		err := s.appendPlayer(gs, player)
 		if err != nil {
 			return err
 		}
@@ -88,7 +79,7 @@ func (s *WebSocketHandler) processingConnection(gs *logic.GameState, cid string,
 		return nil
 	}
 
-	return s.checkIfReconnect(gs, cid)
+	return s.checkIfReconnect(gs, player.CID)
 }
 
 func (s *WebSocketHandler) checkIfReconnect(gs *logic.GameState, cid string) error {
@@ -135,13 +126,13 @@ func (s *WebSocketHandler) determineGameStatusAfterConnecting(gs *logic.GameStat
 
 }
 
-func (s *WebSocketHandler) disconnect(gid string, cid string, nickname string) {
+func (s *WebSocketHandler) disconnect(gid string, player *logic.Player) {
 
 	gs, _ := logic.GetGameState(gid, s.redisConn)
-	s.disconnectLogic(gs, cid)
+	s.disconnectLogic(gs, player.CID)
 
 	helper.PublishRedis(&gstatus.ResponseMessage{
-		Message: fmt.Sprintf(global.TextConfig["player_disconnected"], nickname),
+		Message: fmt.Sprintf(global.TextConfig["player_disconnected"], player.Nickname),
 		Type:    gstatus.DISCON,
 		Data:    helper.Struct2String(gs),
 	}, s.redisConn, gid)

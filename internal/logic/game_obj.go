@@ -28,6 +28,7 @@ type GameState struct {
 type Player struct {
 	CID      string `json:"cid"`
 	Nickname string `json:"nickname"`
+	Avatar   int    `json:"avatar"`
 }
 
 type GameBoard struct {

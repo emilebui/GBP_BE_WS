@@ -74,6 +74,8 @@ func BPCore(gs *GameState, hid int, cid string, pick bool, r *redis.Client) erro
 	if _, ok := TurnFormat[gs.Turn]; !ok {
 		gs.Status = gstatus.ENDED
 		ended = true
+	} else {
+		gs.Pick = CheckIfPickTurn(gs.Turn)
 	}
 
 	gs.PlayerTurn = GetPlayerTurn(gs)
