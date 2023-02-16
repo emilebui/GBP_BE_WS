@@ -74,7 +74,6 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Play
 	ava := 0
 	if avaStr != "" {
 		ava, err = strconv.Atoi(avaStr)
-		fmt.Printf("Debug %s %d\n", avaStr, ava)
 		if err != nil {
 			ava = 0
 		}

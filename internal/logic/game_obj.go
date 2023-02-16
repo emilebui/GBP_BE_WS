@@ -7,8 +7,6 @@ import (
 	"github.com/emilebui/GBP_BE_echo/pkg/helper"
 	"github.com/redis/go-redis/v9"
 	"log"
-	"math/rand"
-	"time"
 )
 
 type GameState struct {
@@ -17,7 +15,6 @@ type GameState struct {
 	Player2           Player          `json:"player_2"`
 	Turn              int             `json:"turn"`
 	Status            int             `json:"status"`
-	PlayerTurnMap     map[int]string  `json:"player_turn_map"`
 	PlayerTurn        string          `json:"player_turn"`
 	ConnectionTracker map[string]bool `json:"connection_tracker"`
 	Pick              bool            `json:"pick"`
@@ -58,16 +55,6 @@ func GetGameState(gid string, r *redis.Client) (*GameState, error) {
 	}
 
 	return gameState, nil
-}
-
-func ShufflePlayer(p1 string, p2 string) map[int]string {
-	rand.Seed(time.Now().Unix())
-	check := rand.Intn(101)
-	if check > 50 {
-		return map[int]string{1: p2, 2: p1}
-	}
-
-	return map[int]string{1: p1, 2: p2}
 }
 
 type MoveRequest struct {
