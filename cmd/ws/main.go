@@ -22,7 +22,11 @@ func main() {
 	config := conf.Get("config.yaml")
 	CORS := config.GetStringSlice("CORS")
 	upgrader.CheckOrigin = func(r *http.Request) bool {
-		return helper.ContainsString(CORS, r.URL.Host)
+		check := helper.ContainsString(CORS, r.URL.Host)
+		if !check {
+			log.Printf("Error Origin: Host - (%s) | URL - (%s)", r.URL.Host, r.URL)
+		}
+		return check
 	}
 
 	// Init text message config

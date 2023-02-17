@@ -63,7 +63,7 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Play
 		return "", nil, errors.New(fmt.Sprintf(global.TextConfig["params_required"], "gid"))
 	}
 	clientID := params.Get("cid")
-	if clientID == "" {
+	if clientID == "" || clientID == "undefined" {
 		return "", nil, errors.New(fmt.Sprintf(global.TextConfig["params_required"], "cid"))
 	}
 	nn := params.Get("nickname")
