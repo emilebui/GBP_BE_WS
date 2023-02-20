@@ -61,3 +61,9 @@ type MoveRequest struct {
 	Call string      `json:"call"`
 	Data interface{} `json:"data"`
 }
+
+type ChatInfo struct {
+	Message  string `json:"message"`
+	CID      string `json:"cid"`
+	Nickname string `json:"nickname"`
+}

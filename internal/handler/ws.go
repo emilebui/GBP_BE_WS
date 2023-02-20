@@ -52,7 +52,10 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 
 	go s.handleRedisMessage(c, gid)
-	s.handleWSMessage(c, gid, player)
+
+	gameLogic := logic.NewGameLogic(s.redisConn, c, gid, player)
+
+	s.handleWSMessage(c, gameLogic)
 
 }
 
@@ -110,22 +113,22 @@ func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {
 	}
 }
 
-func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gid string, player *logic.Player) {
+func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gl *logic.GameLogic) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, 1005, 1001) {
-				s.disconnect(gid, player)
+				s.disconnect(gl.GID, gl.Player)
 			} else {
 				log.Println("ReadMessage Error:", err)
 			}
 			break
 		}
-		log.Printf("Got message: %s - GID: %s - CID: %s\n", string(message), gid, player.CID)
+		log.Printf("Got message: %s - GID: %s - CID: %s\n", string(message), gl.GID, gl.Player.CID)
 
-		err = broker.ProcessMessage(s.redisConn, message, gid, player.CID, c)
+		err = broker.ProcessMessage(message, gl)
 		if err != nil {
-			helper.WSError(c, err, gstatus.ERROR, fmt.Sprintf("Handle Message Error - GID: %s - CID: %s", gid, player.CID))
+			helper.WSError(c, err, gstatus.ERROR, fmt.Sprintf("Handle Message Error - GID: %s - CID: %s", gl.GID, gl.Player.CID))
 		}
 	}
 }
