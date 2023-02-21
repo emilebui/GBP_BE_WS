@@ -79,12 +79,12 @@ func (s *WebSocketHandler) processingConnection(gs *logic.GameState, player *log
 		return nil
 	}
 
-	return s.checkIfReconnect(gs, player.CID)
+	return s.checkIfReconnect(gs, player)
 }
 
-func (s *WebSocketHandler) checkIfReconnect(gs *logic.GameState, cid string) error {
+func (s *WebSocketHandler) checkIfReconnect(gs *logic.GameState, player *logic.Player) error {
 
-	val, ok := gs.ConnectionTracker[cid]
+	val, ok := gs.ConnectionTracker[player.CID]
 	if !ok {
 		return errors.New(global.TextConfig["enough_player"])
 	}
@@ -93,7 +93,7 @@ func (s *WebSocketHandler) checkIfReconnect(gs *logic.GameState, cid string) err
 		return errors.New(global.TextConfig["already_join"])
 	}
 
-	gs.ConnectionTracker[cid] = true
+	gs.ConnectionTracker[player.CID] = true
 	s.determineGameStatusAfterConnecting(gs)
 
 	err := s.redisConn.Set(context.Background(), gs.GameID, helper.Struct2String(gs), 0).Err()
@@ -101,11 +101,18 @@ func (s *WebSocketHandler) checkIfReconnect(gs *logic.GameState, cid string) err
 		return err
 	}
 
+	truePlayer := gs.Player1
+	if player.CID != gs.Player1.CID {
+		truePlayer = gs.Player2
+	}
+
 	helper.PublishRedis(&gstatus.ResponseMessage{
-		Message: global.TextConfig["game_resume"],
+		Message: fmt.Sprintf(global.TextConfig["game_resume"], truePlayer.Nickname),
 		Type:    gstatus.RECONN,
 		Data:    helper.Struct2String(gs),
 	}, s.redisConn, gs.GameID)
+
+	s.announceChat(gs.GameID, &truePlayer, fmt.Sprintf(global.TextConfig["game_resume"], truePlayer.Nickname))
 
 	return nil
 }
@@ -119,7 +126,7 @@ func (s *WebSocketHandler) determineGameStatusAfterConnecting(gs *logic.GameStat
 		check := helper.CheckIfAllBoolValueInMapIs(gs.ConnectionTracker, true)
 
 		// If Both player are connected then gstatus should be PLAYING
-		if check {
+		if check && gs.Status != gstatus.ENDED {
 			gs.Status = gstatus.PLAYING
 		}
 	}
@@ -137,22 +144,11 @@ func (s *WebSocketHandler) disconnect(gid string, player *logic.Player) {
 		Data:    helper.Struct2String(gs),
 	}, s.redisConn, gid)
 
-	s.unwatch(gid, player)
-}
-
-func (s *WebSocketHandler) unwatch(gid string, player *logic.Player) {
-	chatInfo := &logic.ChatInfo{
-		Message:  fmt.Sprintf(global.TextConfig["un_watch"], player.Nickname),
-		CID:      player.CID,
-		Nickname: player.Nickname,
-		JoinChat: true,
+	truePlayer := gs.Player1
+	if player.CID != gs.Player1.CID {
+		truePlayer = gs.Player2
 	}
-
-	helper.PublishRedis(&gstatus.ResponseMessage{
-		Message: fmt.Sprintf(global.TextConfig["un_watch"], player.Nickname),
-		Type:    gstatus.LOG,
-		Data:    helper.Struct2String(chatInfo),
-	}, s.redisConn, gid)
+	s.announceChat(gid, &truePlayer, fmt.Sprintf(global.TextConfig["un_watch"], truePlayer.Nickname))
 }
 
 func (s *WebSocketHandler) determineIfGameIsDeadOrNot(gs *logic.GameState) {
@@ -165,20 +161,22 @@ func (s *WebSocketHandler) determineIfGameIsDeadOrNot(gs *logic.GameState) {
 
 func (s *WebSocketHandler) disconnectLogic(gs *logic.GameState, cid string) {
 	gs.ConnectionTracker[cid] = false
-	gs.Status = gstatus.HALT
+	if gs.Status != gstatus.ENDED {
+		gs.Status = gstatus.HALT
+	}
 	s.determineIfGameIsDeadOrNot(gs)
 }
 
-func (s *WebSocketHandler) informWatchGame(gid string, player *logic.Player) {
+func (s *WebSocketHandler) announceChat(gid string, player *logic.Player, message string) {
 	chatInfo := &logic.ChatInfo{
-		Message:  fmt.Sprintf(global.TextConfig["watch_game_join"], player.Nickname),
+		Message:  message,
 		CID:      player.CID,
 		Nickname: player.Nickname,
 		JoinChat: true,
 	}
 
 	helper.PublishRedis(&gstatus.ResponseMessage{
-		Message: fmt.Sprintf(global.TextConfig["watch_game_join"], player.Nickname),
+		Message: message,
 		Type:    gstatus.LOG,
 		Data:    helper.Struct2String(chatInfo),
 	}, s.redisConn, gid)

@@ -75,7 +75,7 @@ func (s *WebSocketHandler) Watch(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 
 	// Publish news to everyone
-	s.informWatchGame(gid, player)
+	s.announceChat(gid, player, fmt.Sprintf(global.TextConfig["watch_game_join"], player.Nickname))
 
 	go s.handleRedisMessage(c, gid)
 	gameLogic := logic.NewGameLogic(s.redisConn, c, gid, player)
@@ -144,7 +144,7 @@ func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gl *logic.GameLogi
 				if !watch {
 					s.disconnect(gl.GID, gl.Player)
 				} else {
-					s.unwatch(gl.GID, gl.Player)
+					s.announceChat(gl.GID, gl.Player, fmt.Sprintf(global.TextConfig["un_watch"], gl.Player.Nickname))
 				}
 			} else {
 				log.Println("ReadMessage Error:", err)
