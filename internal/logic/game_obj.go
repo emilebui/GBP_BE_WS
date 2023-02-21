@@ -66,4 +66,5 @@ type ChatInfo struct {
 	Message  string `json:"message"`
 	CID      string `json:"cid"`
 	Nickname string `json:"nickname"`
+	JoinChat bool   `json:"join_chat"`
 }

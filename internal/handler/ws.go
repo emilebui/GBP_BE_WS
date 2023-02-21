@@ -55,8 +55,31 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 
 	gameLogic := logic.NewGameLogic(s.redisConn, c, gid, player)
 
-	s.handleWSMessage(c, gameLogic)
+	s.handleWSMessage(c, gameLogic, false)
+}
 
+func (s *WebSocketHandler) Watch(w http.ResponseWriter, r *http.Request) {
+	c, err := s.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Upgrade Error:", err)
+		return
+	}
+
+	gid, player, err := s.getParams(r)
+	if err != nil {
+		helper.WSError(c, err, gstatus.JOIN_GAME_ERROR, "Param Error")
+		return
+	}
+
+	log.Printf("Client %s connected successfully to watch the game %s\n", player.CID, gid)
+	defer c.Close()
+
+	// Publish news to everyone
+	s.informWatchGame(gid, player)
+
+	go s.handleRedisMessage(c, gid)
+	gameLogic := logic.NewGameLogic(s.redisConn, c, gid, player)
+	s.handleWSMessage(c, gameLogic, true)
 }
 
 func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Player, err error) {
@@ -113,12 +136,16 @@ func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {
 	}
 }
 
-func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gl *logic.GameLogic) {
+func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gl *logic.GameLogic, watch bool) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, 1005, 1001) {
-				s.disconnect(gl.GID, gl.Player)
+				if !watch {
+					s.disconnect(gl.GID, gl.Player)
+				} else {
+					s.unwatch(gl.GID, gl.Player)
+				}
 			} else {
 				log.Println("ReadMessage Error:", err)
 			}

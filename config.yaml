@@ -40,6 +40,8 @@ text_messages:
   game_state_update: "New game state --> Update!!"
   game_resume: "Player reconnected, the game will be resume!!!!"
   game_state_return: "Returned game state for update!!"
+  watch_game_join: "%s has joined to watch the game!!!"
+  un_watch: "%s has left the game!!!"
 
 # Game format
 GAME_TURN_FORMAT:

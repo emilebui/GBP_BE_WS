@@ -52,5 +52,6 @@ func main() {
 
 	fmt.Println("Starting Websocket server successfully!!!")
 	http.HandleFunc("/play", wsHandler.Play)
+	http.HandleFunc("/watch", wsHandler.Watch)
 	log.Fatal(http.ListenAndServe(config.GetString("addr"), nil))
 }

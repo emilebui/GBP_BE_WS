@@ -105,6 +105,7 @@ func (g *GameLogic) Chat(mr *MoveRequest) error {
 		Message:  msg,
 		CID:      g.Player.CID,
 		Nickname: nickname,
+		JoinChat: false,
 	}
 
 	helper.PublishRedis(&gstatus.ResponseMessage{
