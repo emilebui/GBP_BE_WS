@@ -136,6 +136,8 @@ func (s *WebSocketHandler) disconnect(gid string, player *logic.Player) {
 		Type:    gstatus.DISCON,
 		Data:    helper.Struct2String(gs),
 	}, s.redisConn, gid)
+
+	s.unwatch(gid, player)
 }
 
 func (s *WebSocketHandler) unwatch(gid string, player *logic.Player) {
