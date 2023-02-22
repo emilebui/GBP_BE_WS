@@ -140,7 +140,7 @@ func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gl *logic.GameLogi
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			if websocket.IsCloseError(err, 1005, 1001) {
+			if websocket.IsCloseError(err, 1005, 1001, 1006) {
 				if !watch {
 					s.disconnect(gl.GID, gl.Player)
 				} else {

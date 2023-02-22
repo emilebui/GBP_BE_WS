@@ -33,7 +33,7 @@
 
 ### Testing
 
-- Run: `go test ./... -cover -bench=Benmark`
+- Run: `go test ./internal/test/... -cover -coverpkg ./...`
 
 ### Project Structure
 
