@@ -14,6 +14,7 @@ func TestPlayEntireGame(t *testing.T) {
 	wsHandler, r := initTestContext(t)
 
 	resetFakeRedis()
+	time.Sleep(500 * time.Millisecond)
 
 	println()
 	printTestLog("____________TEST PLAYING ENTIRE GAME______________")
