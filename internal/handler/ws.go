@@ -151,6 +151,11 @@ func (s *WebSocketHandler) handleWSMessage(c *websocket.Conn, gl *logic.GameLogi
 			}
 			break
 		}
+
+		if len(message) == 0 {
+			continue
+		}
+
 		log.Printf("Got message: %s - GID: %s - CID: %s\n", string(message), gl.GID, gl.Player.CID)
 
 		err = broker.ProcessMessage(message, gl)

@@ -1,9 +1,9 @@
 version: "3.5"
 services:
 
-  redis:
+  gbp_redis:
     image: redis:alpine
-    container_name: redis
+    container_name: gbp_redis
     command: [ "redis-server", "--save" ]
     ports:
       - "6379:6379"
