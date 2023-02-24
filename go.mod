@@ -1,4 +1,4 @@
-module github.com/emilebui/GBP_BE_echo
+module github.com/emilebui/GBP_BE_WS
 
 go 1.19
 
