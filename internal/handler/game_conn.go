@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/emilebui/GBP_BE_echo/internal/logic"
-	"github.com/emilebui/GBP_BE_echo/pkg/global"
-	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
-	"github.com/emilebui/GBP_BE_echo/pkg/helper"
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/global"
+	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
+	"github.com/emilebui/GBP_BE_WS/pkg/helper"
 	"time"
 )
 

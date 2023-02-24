@@ -3,9 +3,9 @@ package logic
 import (
 	"context"
 	"errors"
-	"github.com/emilebui/GBP_BE_echo/pkg/global"
-	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
-	"github.com/emilebui/GBP_BE_echo/pkg/helper"
+	"github.com/emilebui/GBP_BE_WS/pkg/global"
+	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
+	"github.com/emilebui/GBP_BE_WS/pkg/helper"
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"time"

@@ -1,8 +1,8 @@
 package test
 
 import (
-	"github.com/emilebui/GBP_BE_echo/internal/logic"
-	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
 	"testing"
 	"time"
 )

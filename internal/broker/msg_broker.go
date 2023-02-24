@@ -2,9 +2,9 @@ package broker
 
 import (
 	"errors"
-	"github.com/emilebui/GBP_BE_echo/internal/logic"
-	"github.com/emilebui/GBP_BE_echo/pkg/global"
-	"github.com/emilebui/GBP_BE_echo/pkg/helper"
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/global"
+	"github.com/emilebui/GBP_BE_WS/pkg/helper"
 )
 
 /* This package is to handle websocket messages into game logic calls*/

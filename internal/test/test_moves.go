@@ -1,8 +1,8 @@
 package test
 
 import (
-	"github.com/emilebui/GBP_BE_echo/internal/logic"
-	"github.com/emilebui/GBP_BE_echo/pkg/helper"
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/helper"
 	"github.com/gorilla/websocket"
 	"testing"
 )

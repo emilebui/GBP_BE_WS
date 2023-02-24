@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/emilebui/GBP_BE_echo/pkg/gstatus"
+	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"log"

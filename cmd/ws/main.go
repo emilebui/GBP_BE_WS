@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/emilebui/GBP_BE_echo/internal/handler"
-	"github.com/emilebui/GBP_BE_echo/internal/logic"
-	"github.com/emilebui/GBP_BE_echo/pkg/conf"
-	"github.com/emilebui/GBP_BE_echo/pkg/conn"
-	"github.com/emilebui/GBP_BE_echo/pkg/global"
-	"github.com/emilebui/GBP_BE_echo/pkg/helper"
+	"github.com/emilebui/GBP_BE_WS/internal/handler"
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/conf"
+	"github.com/emilebui/GBP_BE_WS/pkg/conn"
+	"github.com/emilebui/GBP_BE_WS/pkg/global"
+	"github.com/emilebui/GBP_BE_WS/pkg/helper"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"

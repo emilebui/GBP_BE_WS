@@ -3,8 +3,8 @@ package logic
 import (
 	"context"
 	"errors"
-	"github.com/emilebui/GBP_BE_echo/pkg/global"
-	"github.com/emilebui/GBP_BE_echo/pkg/helper"
+	"github.com/emilebui/GBP_BE_WS/pkg/global"
+	"github.com/emilebui/GBP_BE_WS/pkg/helper"
 	"github.com/redis/go-redis/v9"
 	"log"
 )
