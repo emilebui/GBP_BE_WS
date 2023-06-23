@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (s *WebSocketHandler) ConnectGame(gid string, player *logic.Player) error {
+func (s *WebSocketHandler) ConnectGame(gid string, player *logic.Player, setting *logic.GameSetting) error {
 
 	gameState, err := logic.GetGameState(gid, s.redisConn)
 
@@ -20,7 +20,7 @@ func (s *WebSocketHandler) ConnectGame(gid string, player *logic.Player) error {
 	}
 
 	if gameState == nil {
-		err = s.createGame(gid, player)
+		err = s.createGame(gid, player, setting)
 		if err != nil {
 			return errors.New(global.TextConfig["redis_error"])
 		}
@@ -38,7 +38,7 @@ func (s *WebSocketHandler) ConnectGame(gid string, player *logic.Player) error {
 	return nil
 }
 
-func (s *WebSocketHandler) createGame(gid string, player *logic.Player) error {
+func (s *WebSocketHandler) createGame(gid string, player *logic.Player, setting *logic.GameSetting) error {
 	gs := &logic.GameState{
 		GameID:  gid,
 		Player1: *player,
@@ -48,6 +48,7 @@ func (s *WebSocketHandler) createGame(gid string, player *logic.Player) error {
 		},
 		Status:            gstatus.WATTING,
 		ConnectionTracker: map[string]bool{player.CID: true},
+		Settings:          *setting,
 	}
 	return s.redisConn.Set(context.Background(), gid, helper.Struct2String(gs), 0).Err()
 }
@@ -58,7 +59,8 @@ func (s *WebSocketHandler) appendPlayer(gs *logic.GameState, player *logic.Playe
 	logic.ShufflePlayer(gs)
 	gs.Turn = 1
 	gs.PlayerTurn = logic.GetPlayerTurn(gs)
-	gs.BPMap = map[int]bool{0: false}
+	gs.BPMapP1 = map[int]bool{0: false}
+	gs.BPMapP2 = map[int]bool{0: false}
 	gs.ConnectionTracker[player.CID] = true
 	return s.redisConn.Set(context.Background(), gs.GameID, helper.Struct2String(gs), 0).Err()
 }

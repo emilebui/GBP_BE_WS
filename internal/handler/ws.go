@@ -36,13 +36,13 @@ func (s *WebSocketHandler) Play(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gid, player, err := s.getParams(r)
+	gid, player, setting, err := s.getParams(r)
 	if err != nil {
 		helper.WSError(c, err, gstatus.JOIN_GAME_ERROR, "Param Error")
 		return
 	}
 
-	err = s.ConnectGame(gid, player)
+	err = s.ConnectGame(gid, player, setting)
 	if err != nil {
 		helper.WSError(c, err, gstatus.JOIN_GAME_ERROR, "Connect Game Error")
 		return
@@ -65,7 +65,7 @@ func (s *WebSocketHandler) Watch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gid, player, err := s.getParams(r)
+	gid, player, _, err := s.getParams(r)
 	if err != nil {
 		helper.WSError(c, err, gstatus.JOIN_GAME_ERROR, "Param Error")
 		return
@@ -82,15 +82,15 @@ func (s *WebSocketHandler) Watch(w http.ResponseWriter, r *http.Request) {
 	s.handleWSMessage(c, gameLogic, true)
 }
 
-func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Player, err error) {
+func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Player, setting *logic.GameSetting, err error) {
 	params := r.URL.Query()
 	gameID := params.Get("gid")
 	if gameID == "" {
-		return "", nil, errors.New(fmt.Sprintf(global.TextConfig["params_required"], "gid"))
+		return "", nil, nil, errors.New(fmt.Sprintf(global.TextConfig["params_required"], "gid"))
 	}
 	clientID := params.Get("cid")
 	if clientID == "" || clientID == "undefined" {
-		return "", nil, errors.New(fmt.Sprintf(global.TextConfig["params_required"], "cid"))
+		return "", nil, nil, errors.New(fmt.Sprintf(global.TextConfig["params_required"], "cid"))
 	}
 	nn := params.Get("nickname")
 	if nn == "" {
@@ -104,6 +104,24 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Play
 			ava = 0
 		}
 	}
+	numBan := params.Get("numban")
+	if numBan == "" {
+		numBan = "4"
+	}
+
+	casualStr := params.Get("casual")
+	casual := false
+	if casualStr != "" {
+		casual, err = strconv.ParseBool(casualStr)
+		if err != nil {
+			casual = false
+		}
+	}
+
+	gameSetting := &logic.GameSetting{
+		NumBan: numBan,
+		Casual: casual,
+	}
 
 	player := &logic.Player{
 		CID:      clientID,
@@ -111,7 +129,7 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Play
 		Avatar:   ava,
 	}
 
-	return gameID, player, nil
+	return gameID, player, gameSetting, nil
 }
 
 func (s *WebSocketHandler) handleRedisMessage(c *websocket.Conn, gid string) {

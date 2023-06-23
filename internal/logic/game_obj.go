@@ -18,8 +18,10 @@ type GameState struct {
 	PlayerTurn        string          `json:"player_turn"`
 	ConnectionTracker map[string]bool `json:"connection_tracker"`
 	Pick              bool            `json:"pick"`
-	BPMap             map[int]bool    `json:"bp_map"`
+	BPMapP1           map[int]bool    `json:"bp_map1"`
+	BPMapP2           map[int]bool    `json:"bp_map2"`
 	Board             GameBoard       `json:"board"`
+	Settings          GameSetting     `json:"settings"`
 }
 
 type Player struct {
@@ -33,6 +35,11 @@ type GameBoard struct {
 	P2Ban  []int `json:"p_2_ban"`
 	P1Pick []int `json:"p_1_pick"`
 	P2Pick []int `json:"p_2_pick"`
+}
+
+type GameSetting struct {
+	NumBan string `json:"num_ban"`
+	Casual bool   `json:"casual"`
 }
 
 func GetGameState(gid string, r *redis.Client) (*GameState, error) {
