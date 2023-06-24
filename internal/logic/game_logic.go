@@ -148,7 +148,7 @@ func (g *GameLogic) banPickLogic(gs *GameState, mr *MoveRequest, pick bool) erro
 		return errors.New(global.TextConfig["invalid_data_type"])
 	}
 
-	if _, ok = gs.BPMap[hid]; ok {
+	if g.checkAlreadyChosen(gs, hid) {
 		return errors.New(global.TextConfig["already_chosen"])
 	}
 
@@ -157,7 +157,7 @@ func (g *GameLogic) banPickLogic(gs *GameState, mr *MoveRequest, pick bool) erro
 
 func (g *GameLogic) bpCore(gs *GameState, hid int, pick bool) error {
 	g.appendBPListPlayer(gs, pick, hid)
-	gs.BPMap[hid] = true
+	g.changeBPList(gs, hid, pick)
 	gs.Turn = gs.Turn + 1
 
 	ended := false
@@ -215,4 +215,33 @@ func (g *GameLogic) appendBPListPlayer(gs *GameState, pick bool, hid int) {
 			gs.Board.P2Ban = append(gs.Board.P2Ban, hid)
 		}
 	}
+}
+
+func (g *GameLogic) changeBPList(gs *GameState, hid int, pick bool) {
+
+	if pick && gs.Settings.Casual {
+		if g.Player.CID == gs.Player1.CID {
+			gs.BPMapP1[hid] = true
+		} else {
+			gs.BPMapP2[hid] = true
+		}
+	} else {
+		gs.BPMapP1[hid] = true
+		gs.BPMapP2[hid] = true
+	}
+}
+
+func (g *GameLogic) checkAlreadyChosen(gs *GameState, hid int) bool {
+
+	if g.Player.CID == gs.Player1.CID {
+		if _, ok := gs.BPMapP1[hid]; ok {
+			return true
+		}
+	} else {
+		if _, ok := gs.BPMapP2[hid]; ok {
+			return true
+		}
+	}
+
+	return false
 }
