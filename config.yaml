@@ -45,78 +45,311 @@ text_messages:
 
 # Game format
 GAME_TURN_FORMAT:
-  1:
-    pick: false
-    player: 1
-  2:
-    pick: false
-    player: 2
-  3:
-    pick: false
-    player: 1
-  4:
-    pick: false
-    player: 2
-  5:
-    pick: false
-    player: 1
-  6:
-    pick: false
-    player: 2
-  7:
-    pick: true
-    player: 1
-  8:
-    pick: true
-    player: 2
-  9:
-    pick: true
-    player: 2
-  10:
-    pick: true
-    player: 1
-  11:
-    pick: true
-    player: 1
-  12:
-    pick: true
-    player: 2
-  13:
-    pick: true
-    player: 2
-  14:
-    pick: true
-    player: 1
-  15:
-    pick: false
-    player: 1
-  16:
-    pick: false
-    player: 2
-  17:
-    pick: true
-    player: 2
-  18:
-    pick: true
-    player: 1
-  19:
-    pick: true
-    player: 1
-  20:
-    pick: true
-    player: 2
-  21:
-    pick: true
-    player: 2
-  22:
-    pick: true
-    player: 1
-  23:
-    pick: true
-    player: 1
-  24:
-    pick: true
-    player: 2
+  "4":
+    1:
+      pick: false
+      player: 1
+    2:
+      pick: false
+      player: 2
+    3:
+      pick: false
+      player: 1
+    4:
+      pick: false
+      player: 2
+    5:
+      pick: false
+      player: 1
+    6:
+      pick: false
+      player: 2
+    7:
+      pick: true
+      player: 1
+    8:
+      pick: true
+      player: 2
+    9:
+      pick: true
+      player: 2
+    10:
+      pick: true
+      player: 1
+    11:
+      pick: true
+      player: 1
+    12:
+      pick: true
+      player: 2
+    13:
+      pick: true
+      player: 2
+    14:
+      pick: true
+      player: 1
+    15:
+      pick: false
+      player: 1
+    16:
+      pick: false
+      player: 2
+    17:
+      pick: true
+      player: 2
+    18:
+      pick: true
+      player: 1
+    19:
+      pick: true
+      player: 1
+    20:
+      pick: true
+      player: 2
+    21:
+      pick: true
+      player: 2
+    22:
+      pick: true
+      player: 1
+    23:
+      pick: true
+      player: 1
+    24:
+      pick: true
+      player: 2
+  "3":
+    1:
+      pick: false
+      player: 1
+    2:
+      pick: false
+      player: 2
+    3:
+      pick: false
+      player: 1
+    4:
+      pick: false
+      player: 2
+    5:
+      pick: true
+      player: 1
+    6:
+      pick: true
+      player: 2
+    7:
+      pick: true
+      player: 2
+    8:
+      pick: true
+      player: 1
+    9:
+      pick: true
+      player: 1
+    10:
+      pick: true
+      player: 2
+    11:
+      pick: true
+      player: 2
+    12:
+      pick: true
+      player: 1
+    13:
+      pick: false
+      player: 1
+    14:
+      pick: false
+      player: 2
+    15:
+      pick: true
+      player: 2
+    16:
+      pick: true
+      player: 1
+    17:
+      pick: true
+      player: 1
+    18:
+      pick: true
+      player: 2
+    19:
+      pick: true
+      player: 2
+    20:
+      pick: true
+      player: 1
+    21:
+      pick: true
+      player: 1
+    22:
+      pick: true
+      player: 2
+  "2":
+    1:
+      pick: false
+      player: 1
+    2:
+      pick: false
+      player: 2
+    3:
+      pick: true
+      player: 1
+    4:
+      pick: true
+      player: 2
+    5:
+      pick: true
+      player: 2
+    6:
+      pick: true
+      player: 1
+    7:
+      pick: true
+      player: 1
+    8:
+      pick: true
+      player: 2
+    9:
+      pick: true
+      player: 2
+    10:
+      pick: true
+      player: 1
+    11:
+      pick: false
+      player: 1
+    12:
+      pick: false
+      player: 2
+    13:
+      pick: true
+      player: 2
+    14:
+      pick: true
+      player: 1
+    15:
+      pick: true
+      player: 1
+    16:
+      pick: true
+      player: 2
+    17:
+      pick: true
+      player: 2
+    18:
+      pick: true
+      player: 1
+    19:
+      pick: true
+      player: 1
+    20:
+      pick: true
+      player: 2
+  "1":
+    1:
+      pick: false
+      player: 1
+    2:
+      pick: false
+      player: 2
+    3:
+      pick: true
+      player: 1
+    4:
+      pick: true
+      player: 2
+    5:
+      pick: true
+      player: 2
+    6:
+      pick: true
+      player: 1
+    7:
+      pick: true
+      player: 1
+    8:
+      pick: true
+      player: 2
+    9:
+      pick: true
+      player: 2
+    10:
+      pick: true
+      player: 1
+    11:
+      pick: true
+      player: 2
+    12:
+      pick: true
+      player: 1
+    13:
+      pick: true
+      player: 1
+    14:
+      pick: true
+      player: 2
+    15:
+      pick: true
+      player: 2
+    16:
+      pick: true
+      player: 1
+    17:
+      pick: true
+      player: 1
+    18:
+      pick: true
+      player: 1
+  "0":
+    1:
+      pick: true
+      player: 1
+    2:
+      pick: true
+      player: 2
+    3:
+      pick: true
+      player: 2
+    4:
+      pick: true
+      player: 1
+    5:
+      pick: true
+      player: 1
+    6:
+      pick: true
+      player: 2
+    7:
+      pick: true
+      player: 2
+    8:
+      pick: true
+      player: 1
+    9:
+      pick: true
+      player: 2
+    10:
+      pick: true
+      player: 1
+    11:
+      pick: true
+      player: 1
+    12:
+      pick: true
+      player: 2
+    13:
+      pick: true
+      player: 2
+    14:
+      pick: true
+      player: 1
+    15:
+      pick: true
+      player: 1
+    16:
+      pick: true
+      player: 1
 
 
 # GAME Config

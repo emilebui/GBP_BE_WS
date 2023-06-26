@@ -25,8 +25,9 @@ func newMoveSet(t *testing.T, p1Conn *websocket.Conn, p2Conn *websocket.Conn) *M
 	}
 }
 
-func (m *MoveSet) MakeTestMove(moveIndex int) {
-	turnInfo, ok := logic.TurnFormat[moveIndex]
+func (m *MoveSet) MakeTestMove(gs *logic.GameState, moveIndex int) {
+	turnFormat := gs.Settings.NumBan
+	turnInfo, ok := logic.TurnFormat[turnFormat][moveIndex]
 	if !ok {
 		m.t.Fatalf("invalid turn index!!")
 	}

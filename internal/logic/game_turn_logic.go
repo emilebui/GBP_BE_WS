@@ -10,14 +10,17 @@ type TurnInfo struct {
 	Pick   bool `mapstructure:"pick"`
 }
 
-var TurnFormat map[int]TurnInfo
+var TurnFormat map[string]map[int]TurnInfo
 
-func InitTurnFormat(tf map[int]TurnInfo) {
+func InitTurnFormat(tf map[string]map[int]TurnInfo) {
 	TurnFormat = tf
 }
 
 func GetPlayerTurn(gs *GameState) string {
-	turnInfo := TurnFormat[gs.Turn]
+
+	turnFormat := gs.Settings.NumBan
+
+	turnInfo := TurnFormat[turnFormat][gs.Turn]
 
 	if turnInfo.Player != 1 {
 		return gs.Player2.CID
@@ -26,8 +29,22 @@ func GetPlayerTurn(gs *GameState) string {
 	return gs.Player1.CID
 }
 
-func CheckIfPickTurn(turn int) bool {
-	return TurnFormat[turn].Pick
+func CheckIfPickTurn(gs *GameState) bool {
+	turnFormat := gs.Settings.NumBan
+
+	return TurnFormat[turnFormat][gs.Turn].Pick
+}
+
+func CheckIfTurnValid(gs *GameState) bool {
+	turnFormat := gs.Settings.NumBan
+
+	_, ok := TurnFormat[turnFormat][gs.Turn]
+	return ok
+}
+
+func GetTurnFormat(gs *GameState) map[int]TurnInfo {
+	turnFormat := gs.Settings.NumBan
+	return TurnFormat[turnFormat]
 }
 
 func ShufflePlayer(gs *GameState) {

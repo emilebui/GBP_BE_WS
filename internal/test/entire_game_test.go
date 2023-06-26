@@ -38,9 +38,9 @@ func TestPlayEntireGame(t *testing.T) {
 	moveSet := createMoveSet(t, p1Conn, p2Conn, gs)
 	i := 1
 
-	for i <= len(logic.TurnFormat) {
+	for i <= len(logic.GetTurnFormat(gs)) {
 		printTestLog(fmt.Sprintf("Make Move Turn %d", i))
-		moveSet.MakeTestMove(i)
+		moveSet.MakeTestMove(gs, i)
 		time.Sleep(250 * time.Millisecond)
 		i++
 	}

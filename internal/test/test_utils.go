@@ -38,7 +38,7 @@ func initTestContext(t *testing.T) (*handler.WebSocketHandler, *redis.Client) {
 	// Init After Game Expiration
 	global.InitAfterGameExp(config.GetInt("AFTER_GAME_EXP"))
 
-	var tf map[int]logic.TurnInfo
+	var tf map[string]map[int]logic.TurnInfo
 	err := config.UnmarshalKey("GAME_TURN_FORMAT", &tf)
 	if err != nil {
 		t.Error("Failed to load config")
