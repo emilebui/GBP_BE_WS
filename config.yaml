@@ -300,7 +300,7 @@ GAME_TURN_FORMAT:
       player: 1
     18:
       pick: true
-      player: 1
+      player: 2
   "0":
     1:
       pick: true
@@ -349,7 +349,7 @@ GAME_TURN_FORMAT:
       player: 1
     16:
       pick: true
-      player: 1
+      player: 2
 
 
 # GAME Config

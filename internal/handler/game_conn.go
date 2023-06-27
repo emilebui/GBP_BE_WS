@@ -58,6 +58,7 @@ func (s *WebSocketHandler) appendPlayer(gs *logic.GameState, player *logic.Playe
 	gs.Status = gstatus.PLAYING
 	logic.ShufflePlayer(gs)
 	gs.Turn = 1
+	gs.Pick = logic.CheckIfPickTurn(gs)
 	gs.PlayerTurn = logic.GetPlayerTurn(gs)
 	gs.BPMapP1 = map[int]bool{0: false}
 	gs.BPMapP2 = map[int]bool{0: false}
