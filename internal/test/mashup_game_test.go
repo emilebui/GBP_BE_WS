@@ -59,9 +59,9 @@ func TestMashUp(t *testing.T) {
 
 	i := 3
 
-	for i <= len(logic.TurnFormat) {
+	for i <= len(logic.GetTurnFormat(gs)) {
 		printTestLog(fmt.Sprintf("Make Move Turn %d", i))
-		moveSet.MakeTestMove(i)
+		moveSet.MakeTestMove(gs, i)
 		time.Sleep(250 * time.Millisecond)
 		i++
 	}

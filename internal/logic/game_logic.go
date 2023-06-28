@@ -139,7 +139,7 @@ func (g *GameLogic) checkIfMoveValid(gs *GameState) error {
 
 func (g *GameLogic) banPickLogic(gs *GameState, mr *MoveRequest, pick bool) error {
 
-	if CheckIfPickTurn(gs.Turn) != pick {
+	if CheckIfPickTurn(gs) != pick {
 		return errors.New(global.TextConfig["wrong_move"])
 	}
 
@@ -161,11 +161,11 @@ func (g *GameLogic) bpCore(gs *GameState, hid int, pick bool) error {
 	gs.Turn = gs.Turn + 1
 
 	ended := false
-	if _, ok := TurnFormat[gs.Turn]; !ok {
+	if !CheckIfTurnValid(gs) {
 		gs.Status = gstatus.ENDED
 		ended = true
 	} else {
-		gs.Pick = CheckIfPickTurn(gs.Turn)
+		gs.Pick = CheckIfPickTurn(gs)
 	}
 
 	gs.PlayerTurn = GetPlayerTurn(gs)

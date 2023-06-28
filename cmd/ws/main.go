@@ -37,7 +37,7 @@ func main() {
 	global.InitAfterGameExp(config.GetInt("AFTER_GAME_EXP"))
 
 	// Get Turn Format
-	var tf map[int]logic.TurnInfo
+	var tf map[string]map[int]logic.TurnInfo
 	err := config.UnmarshalKey("GAME_TURN_FORMAT", &tf)
 	if err != nil {
 		log.Fatal(err)
