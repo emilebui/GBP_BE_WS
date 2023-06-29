@@ -93,20 +93,29 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Play
 		return "", nil, nil, errors.New(fmt.Sprintf(global.TextConfig["params_required"], "cid"))
 	}
 	nn := params.Get("nickname")
-	if nn == "" {
+	if nn == "" || nn == "undefined" {
 		nn = clientID
 	}
 	avaStr := params.Get("avatar")
 	ava := 0
-	if avaStr != "" {
+	if avaStr != "" && avaStr != "undefined" {
 		ava, err = strconv.Atoi(avaStr)
 		if err != nil {
 			ava = 0
 		}
 	}
 	numBan := params.Get("numban")
-	if numBan == "" {
+	if numBan == "" || numBan == "undefined" {
 		numBan = "4"
+	}
+
+	delayStr := params.Get("delay")
+	delay := 0
+	if delayStr != "" && delayStr != "undefined" {
+		delay, err = strconv.Atoi(delayStr)
+		if err != nil {
+			delay = 0
+		}
 	}
 
 	casualStr := params.Get("casual")
@@ -121,6 +130,7 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Play
 	gameSetting := &logic.GameSetting{
 		NumBan: numBan,
 		Casual: casual,
+		Delay:  delay,
 	}
 
 	player := &logic.Player{

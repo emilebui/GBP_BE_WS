@@ -40,6 +40,7 @@ type GameBoard struct {
 type GameSetting struct {
 	NumBan string `json:"num_ban"`
 	Casual bool   `json:"casual"`
+	Delay  int    `json:"delay"`
 }
 
 func GetGameState(gid string, r *redis.Client) (*GameState, error) {
