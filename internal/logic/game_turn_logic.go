@@ -10,10 +10,17 @@ type TurnInfo struct {
 	Pick   bool `mapstructure:"pick"`
 }
 
-var TurnFormat map[string]map[int]TurnInfo
+type FormatInfo struct {
+	NumAbyssTurn int `mapstructure:"abyss"`
+	NumSOTurn    int `mapstructure:"onslaught"`
+}
 
-func InitTurnFormat(tf map[string]map[int]TurnInfo) {
+var TurnFormat map[string]map[int]TurnInfo
+var FormatInfoMap map[string]FormatInfo
+
+func InitTurnFormat(tf map[string]map[int]TurnInfo, fi map[string]FormatInfo) {
 	TurnFormat = tf
+	FormatInfoMap = fi
 }
 
 func GetPlayerTurn(gs *GameState) string {
@@ -36,15 +43,14 @@ func CheckIfPickTurn(gs *GameState) bool {
 }
 
 func CheckIfTurnValid(gs *GameState) bool {
+	if gs.Turn > GetMaxTurn(gs) {
+		return false
+	}
+
 	turnFormat := gs.Settings.NumBan
 
 	_, ok := TurnFormat[turnFormat][gs.Turn]
 	return ok
-}
-
-func GetTurnFormat(gs *GameState) map[int]TurnInfo {
-	turnFormat := gs.Settings.NumBan
-	return TurnFormat[turnFormat]
 }
 
 func ShufflePlayer(gs *GameState) {
@@ -59,4 +65,12 @@ func SwapPlayer(gs *GameState) {
 	temp := gs.Player1
 	gs.Player1 = gs.Player2
 	gs.Player2 = temp
+}
+
+func GetMaxTurn(gs *GameState) int {
+	if gs.Settings.SOMode {
+		return FormatInfoMap[gs.Settings.NumBan].NumSOTurn
+	}
+
+	return FormatInfoMap[gs.Settings.NumBan].NumAbyssTurn
 }

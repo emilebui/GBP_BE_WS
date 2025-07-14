@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/websocket"
+
 	"github.com/emilebui/GBP_BE_WS/internal/handler"
 	"github.com/emilebui/GBP_BE_WS/internal/logic"
 	"github.com/emilebui/GBP_BE_WS/pkg/conf"
 	"github.com/emilebui/GBP_BE_WS/pkg/conn"
 	"github.com/emilebui/GBP_BE_WS/pkg/global"
 	"github.com/emilebui/GBP_BE_WS/pkg/helper"
-	"github.com/gorilla/websocket"
-	"log"
-	"net/http"
 )
 
 var upgrader = websocket.Upgrader{}
@@ -42,7 +44,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	logic.InitTurnFormat(tf)
+
+	// Get Format Info Map
+	var fi map[string]logic.FormatInfo
+	err = config.UnmarshalKey("GAME_FORMAT_INFO", &fi)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	logic.InitTurnFormat(tf, fi)
 
 	// Init Redis Connection
 	redisConn := conn.GetRedisConn(config)

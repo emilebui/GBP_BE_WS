@@ -4,16 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+
+	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
+
 	"github.com/emilebui/GBP_BE_WS/internal/broker"
 	"github.com/emilebui/GBP_BE_WS/internal/logic"
 	"github.com/emilebui/GBP_BE_WS/pkg/global"
 	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
 	"github.com/emilebui/GBP_BE_WS/pkg/helper"
-	"github.com/gorilla/websocket"
-	"github.com/redis/go-redis/v9"
-	"log"
-	"net/http"
-	"strconv"
 )
 
 type WebSocketHandler struct {
@@ -127,10 +129,20 @@ func (s *WebSocketHandler) getParams(r *http.Request) (gid string, p *logic.Play
 		}
 	}
 
+	SOModeStr := params.Get("so")
+	SOMode := false
+	if SOModeStr != "" {
+		SOMode, err = strconv.ParseBool(SOModeStr)
+		if err != nil {
+			SOMode = false
+		}
+	}
+
 	gameSetting := &logic.GameSetting{
 		NumBan: numBan,
 		Casual: casual,
 		Delay:  delay,
+		SOMode: SOMode,
 	}
 
 	player := &logic.Player{

@@ -3,10 +3,12 @@ package logic
 import (
 	"context"
 	"errors"
+	"log"
+
+	"github.com/redis/go-redis/v9"
+
 	"github.com/emilebui/GBP_BE_WS/pkg/global"
 	"github.com/emilebui/GBP_BE_WS/pkg/helper"
-	"github.com/redis/go-redis/v9"
-	"log"
 )
 
 type GameState struct {
@@ -41,6 +43,9 @@ type GameSetting struct {
 	NumBan string `json:"num_ban"`
 	Casual bool   `json:"casual"`
 	Delay  int    `json:"delay"`
+
+	// For Stygian Onslaught mode
+	SOMode bool `json:"so_mode"`
 }
 
 func GetGameState(gid string, r *redis.Client) (*GameState, error) {

@@ -1,10 +1,11 @@
 package test
 
 import (
-	"github.com/emilebui/GBP_BE_WS/internal/logic"
-	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
 	"testing"
 	"time"
+
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
 )
 
 func TestGameConnection(t *testing.T) {
@@ -21,7 +22,7 @@ func TestGameConnection(t *testing.T) {
 	printTestLog("Init Test Context Successfully...")
 
 	// Open test connection
-	p1Conn := generatePlayerConn(t, wsHandler, P1CID)
+	p1Conn := generatePlayerConnInNormalMode(t, wsHandler, P1CID)
 
 	printTestLog("Created Test Websocket for Player 1 Successfully...")
 
@@ -39,7 +40,7 @@ func TestGameConnection(t *testing.T) {
 	makeMove(t, p1Conn, "BAN", 69)
 	readMessage(t, p1Conn)
 
-	p2Conn := generatePlayerConn(t, wsHandler, P2CID)
+	p2Conn := generatePlayerConnInNormalMode(t, wsHandler, P2CID)
 
 	printTestLog("Created Test Websocket for Player 2 Successfully...")
 
@@ -67,7 +68,7 @@ func TestGameConnection(t *testing.T) {
 	// Unable to submit move
 	makeMove(t, p1Conn, "BAN", 69)
 
-	p2Conn = generatePlayerConn(t, wsHandler, P2CID)
+	p2Conn = generatePlayerConnInNormalMode(t, wsHandler, P2CID)
 	time.Sleep(1 * time.Second)
 
 	gs, err = logic.GetGameState(GIDTest, r)

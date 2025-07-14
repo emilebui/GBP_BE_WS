@@ -2,10 +2,11 @@ package test
 
 import (
 	"fmt"
-	"github.com/emilebui/GBP_BE_WS/internal/logic"
-	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
 	"testing"
 	"time"
+
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/gstatus"
 )
 
 func TestMashUp(t *testing.T) {
@@ -22,11 +23,11 @@ func TestMashUp(t *testing.T) {
 	printTestLog("Init Test Context Successfully...")
 
 	// Open test connection
-	p1Conn := generatePlayerConn(t, wsHandler, P1CID)
+	p1Conn := generatePlayerConnInNormalMode(t, wsHandler, P1CID)
 
 	printTestLog("Created Test Websocket for Player 1 Successfully...")
 
-	p2Conn := generatePlayerConn(t, wsHandler, P2CID)
+	p2Conn := generatePlayerConnInNormalMode(t, wsHandler, P2CID)
 
 	printTestLog("Created Test Websocket for Player 2 Successfully...")
 
@@ -59,7 +60,7 @@ func TestMashUp(t *testing.T) {
 
 	i := 3
 
-	for i <= len(logic.GetTurnFormat(gs)) {
+	for i <= logic.GetMaxTurn(gs) {
 		printTestLog(fmt.Sprintf("Make Move Turn %d", i))
 		moveSet.MakeTestMove(gs, i)
 		time.Sleep(250 * time.Millisecond)
@@ -82,8 +83,8 @@ func TestMashUp(t *testing.T) {
 	_ = p1Conn.Close()
 	_ = p2Conn.Close()
 	time.Sleep(1 * time.Second)
-	p1Conn = generatePlayerConn(t, wsHandler, P1CID)
-	p2Conn = generatePlayerConn(t, wsHandler, P2CID)
+	p1Conn = generatePlayerConnInNormalMode(t, wsHandler, P1CID)
+	p2Conn = generatePlayerConnInNormalMode(t, wsHandler, P2CID)
 
 	println()
 	printTestLog("____________END TEST______________")

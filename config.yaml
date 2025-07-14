@@ -44,6 +44,22 @@ text_messages:
   un_watch: "%s has left the game!!!"
 
 # Game format
+GAME_FORMAT_INFO:
+  "4":
+    abyss: 24
+    onslaught: 32
+  "3":
+    abyss: 22
+    onslaught: 30
+  "2":
+    abyss: 20
+    onslaught: 28
+  "1":
+    abyss: 18
+    onslaught: 26
+  "0":
+    abyss: 16
+    onslaught: 24
 GAME_TURN_FORMAT:
   "4":
     1:
@@ -118,6 +134,30 @@ GAME_TURN_FORMAT:
     24:
       pick: true
       player: 2
+    25:
+      pick: true
+      player: 2
+    26:
+      pick: true
+      player: 1
+    27:
+      pick: true
+      player: 1
+    28:
+      pick: true
+      player: 2
+    29:
+      pick: true
+      player: 2
+    30:
+      pick: true
+      player: 1
+    31:
+      pick: true
+      player: 1
+    32:
+      pick: true
+      player: 2
   "3":
     1:
       pick: false
@@ -185,6 +225,30 @@ GAME_TURN_FORMAT:
     22:
       pick: true
       player: 2
+    23:
+      pick: true
+      player: 2
+    24:
+      pick: true
+      player: 1
+    25:
+      pick: true
+      player: 1
+    26:
+      pick: true
+      player: 2
+    27:
+      pick: true
+      player: 2
+    28:
+      pick: true
+      player: 1
+    29:
+      pick: true
+      player: 1
+    30:
+      pick: true
+      player: 2
   "2":
     1:
       pick: false
@@ -246,6 +310,30 @@ GAME_TURN_FORMAT:
     20:
       pick: true
       player: 2
+    21:
+      pick: true
+      player: 2
+    22:
+      pick: true
+      player: 1
+    23:
+      pick: true
+      player: 1
+    24:
+      pick: true
+      player: 2
+    25:
+      pick: true
+      player: 2
+    26:
+      pick: true
+      player: 1
+    27:
+      pick: true
+      player: 1
+    28:
+      pick: true
+      player: 2
   "1":
     1:
       pick: false
@@ -301,6 +389,30 @@ GAME_TURN_FORMAT:
     18:
       pick: true
       player: 2
+    19:
+      pick: true
+      player: 2
+    20:
+      pick: true
+      player: 1
+    21:
+      pick: true
+      player: 1
+    22:
+      pick: true
+      player: 2
+    23:
+      pick: true
+      player: 2
+    24:
+      pick: true
+      player: 1
+    25:
+      pick: true
+      player: 1
+    26:
+      pick: true
+      player: 2
   "0":
     1:
       pick: true
@@ -348,6 +460,30 @@ GAME_TURN_FORMAT:
       pick: true
       player: 1
     16:
+      pick: true
+      player: 2
+    17:
+      pick: true
+      player: 2
+    18:
+      pick: true
+      player: 1
+    19:
+      pick: true
+      player: 1
+    20:
+      pick: true
+      player: 2
+    21:
+      pick: true
+      player: 2
+    22:
+      pick: true
+      player: 1
+    23:
+      pick: true
+      player: 1
+    24:
       pick: true
       player: 2
 

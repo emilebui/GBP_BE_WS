@@ -2,18 +2,20 @@ package test
 
 import (
 	"fmt"
-	"github.com/emilebui/GBP_BE_WS/internal/handler"
-	"github.com/emilebui/GBP_BE_WS/internal/logic"
-	"github.com/emilebui/GBP_BE_WS/pkg/conf"
-	"github.com/emilebui/GBP_BE_WS/pkg/global"
-	"github.com/emilebui/GBP_BE_WS/pkg/helper"
-	"github.com/gorilla/websocket"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
+
+	"github.com/emilebui/GBP_BE_WS/internal/handler"
+	"github.com/emilebui/GBP_BE_WS/internal/logic"
+	"github.com/emilebui/GBP_BE_WS/pkg/conf"
+	"github.com/emilebui/GBP_BE_WS/pkg/global"
+	"github.com/emilebui/GBP_BE_WS/pkg/helper"
 )
 
 const (
@@ -43,7 +45,13 @@ func initTestContext(t *testing.T) (*handler.WebSocketHandler, *redis.Client) {
 	if err != nil {
 		t.Error("Failed to load config")
 	}
-	logic.InitTurnFormat(tf)
+	var fi map[string]logic.FormatInfo
+	err = config.UnmarshalKey("GAME_FORMAT_INFO", &fi)
+	if err != nil {
+		t.Error("Failed to load config")
+	}
+
+	logic.InitTurnFormat(tf, fi)
 
 	r := getFakeRedis(t)
 
@@ -58,12 +66,25 @@ func printTestLog(msg string) {
 	println()
 }
 
-func generatePlayerConn(t *testing.T, wsHandler *handler.WebSocketHandler, cid string) *websocket.Conn {
-
+func generatePlayerConnInNormalMode(t *testing.T, wsHandler *handler.WebSocketHandler, cid string) *websocket.Conn {
 	srv := httptest.NewServer(http.HandlerFunc(wsHandler.Play))
 	u, _ := url.Parse(srv.URL)
 	u.Scheme = "ws"
 	u.RawQuery = fmt.Sprintf("gid=%s&cid=%s", GIDTest, cid)
+
+	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		t.Fatalf("cannot make websocket connection: %v", err)
+	}
+
+	return conn
+}
+
+func generatePlayerConn(t *testing.T, wsHandler *handler.WebSocketHandler, query string) *websocket.Conn {
+	srv := httptest.NewServer(http.HandlerFunc(wsHandler.Play))
+	u, _ := url.Parse(srv.URL)
+	u.Scheme = "ws"
+	u.RawQuery = query
 
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
