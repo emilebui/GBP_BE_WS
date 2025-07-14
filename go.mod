@@ -1,6 +1,6 @@
 module github.com/emilebui/GBP_BE_WS
 
-go 1.22
+go 1.19
 
 require (
 	github.com/gorilla/websocket v1.5.0
